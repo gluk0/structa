@@ -1,0 +1,47 @@
+name: syslog
+version: 1.0
+description: Structure definition for system logs
+patterns:
+  - name: standard_syslog
+    regex: '^(?P<timestamp>[A-Za-z]{3} [ 0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}) (?P<hostname>[^ ]+) (?P<app_name>[^\\[]+)\\[(?P<pid>[0-9]+)\\]: (?P<message>.*)$'
+    fields:
+      - name: timestamp
+        type: string
+        description: Log timestamp
+      - name: hostname
+        type: string
+        description: Hostname or IP address
+      - name: app_name
+        type: string
+        description: Application name
+      - name: pid
+        type: int
+        description: Process ID
+      - name: message
+        type: string
+        description: Log message
+  
+  - name: auth_failure
+    regex: '^(?P<timestamp>[A-Za-z]{3} [ 0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}) (?P<hostname>[^ ]+) sshd\\[(?P<pid>[0-9]+)\\]: Failed password for (?P<user>[^ ]+) from (?P<ip>[^ ]+) port (?P<port>[0-9]+) (?P<protocol>.*)$'
+    fields:
+      - name: timestamp
+        type: string
+        description: Log timestamp
+      - name: hostname
+        type: string
+        description: Hostname or IP address
+      - name: pid
+        type: int
+        description: Process ID
+      - name: user
+        type: string
+        description: Username
+      - name: ip
+        type: string
+        description: Client IP address
+      - name: port
+        type: int
+        description: Client port
+      - name: protocol
+        type: string
+        description: Protocol information 

@@ -1,0 +1,64 @@
+name: apache_access_log
+version: 1.0
+description: Structure definition for Apache access logs
+patterns:
+  - name: common_log_format
+    regex: '^(?P<ip>\S+) \S+ (?P<user>\S+) \[(?P<timestamp>[^\]]+)\] "(?P<method>\S+) (?P<path>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<size>\d+)$'
+    fields:
+      - name: ip
+        type: string
+        description: Client IP address
+      - name: user
+        type: string
+        description: Remote user
+      - name: timestamp
+        type: string
+        description: Request timestamp
+      - name: method
+        type: string
+        description: HTTP method
+      - name: path
+        type: string
+        description: Request path
+      - name: protocol
+        type: string
+        description: HTTP protocol
+      - name: status
+        type: int
+        description: HTTP status code
+      - name: size
+        type: int
+        description: Response size in bytes
+  - name: combined_log_format
+    regex: '^(?P<ip>\S+) \S+ (?P<user>\S+) \[(?P<timestamp>[^\]]+)\] "(?P<method>\S+) (?P<path>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<size>\d+) "(?P<referer>[^"]*)" "(?P<user_agent>[^"]*)"$'
+    fields:
+      - name: ip
+        type: string
+        description: Client IP address
+      - name: user
+        type: string
+        description: Remote user
+      - name: timestamp
+        type: string
+        description: Request timestamp
+      - name: method
+        type: string
+        description: HTTP method
+      - name: path
+        type: string
+        description: Request path
+      - name: protocol
+        type: string
+        description: HTTP protocol
+      - name: status
+        type: int
+        description: HTTP status code
+      - name: size
+        type: int
+        description: Response size in bytes
+      - name: referer
+        type: string
+        description: Referer URL
+      - name: user_agent
+        type: string
+        description: User agent string 
