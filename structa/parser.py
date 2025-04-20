@@ -26,7 +26,7 @@ class LogParser:
         
         for pattern in self.structure_def.patterns:
             pattern_type = pattern.get("type", "regex")  
-            pattern_str = pattern["pattern"]
+            pattern_str = pattern["regex"]
             
             parser = PatternParser.create(pattern_type)
             compiled_pattern = parser.compile(pattern_str)
