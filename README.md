@@ -1,21 +1,14 @@
-# structa
-
-```
-       _                          _               
-  ___ | |_    ____  _   _   ____ | |_    ____     
- /___)|  _)  / ___)| | | | / ___)|  _)  / _  |    
-|___ || |__ | |    | |_| |( (___ | |__ ( ( | |    
-(___/  \___)|_|     \____| \____) \___) \_||_|    
-
-      chop your logs to structured data                                                
-```
-
-A lightweight Python library that transforms unstructured log files into structured data using YAML-defined patterns.
+# structa🪵
+A lightweight Python library that transforms 
+unstructed log data into structured data,
+this can be ran locally, as a kubernetes sidecar 
+or run as a service to parse logs for Data Engineering
+processes! 
 
 ## Install
 
 ```shell
-uv pip install .  # or pip install .
+uv pip install .  # or via pip.
 ```
 
 ## Quick Start
@@ -23,13 +16,13 @@ uv pip install .  # or pip install .
 1. Define your log structure in YAML:
 
 ```shell
-structa sample > apache_logs.yaml
+structa sample > sample_logs.yaml
 ```
 
 2. Parse logs with one command:
 
 ```shell
-structa parse --structure apache_logs.yaml --input access.log --format json
+structa parse --structure <structure>.yaml --input <file_name> --format json
 ```
 
 ## Python API
@@ -38,7 +31,7 @@ structa parse --structure apache_logs.yaml --input access.log --format json
 from structa import LogParser, StructureDefinition
 
 # Parse logs with just three lines of code
-structure = StructureDefinition.from_file("apache_logs.yaml")
+structure = StructureDefinition.from_file("<structure>.yaml")
 parser = LogParser(structure)
-structured_data = parser.parse_file("access.log")
+structured_data = parser.parse_file("<file>.log")
 ```
