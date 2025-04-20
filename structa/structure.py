@@ -50,8 +50,8 @@ class StructureDefinition:
             if not isinstance(pattern, dict):
                 raise ValueError(f"Pattern at index {i} must be a dictionary")
                 
-            if "regex" not in pattern:
-                raise ValueError(f"Pattern at index {i} must contain a 'regex' key")
+            if "regex" not in pattern and "pattern" not in pattern:
+                raise ValueError(f"Pattern at index {i} must contain either a 'regex' or 'pattern' key")
                 
             if "fields" not in pattern:
                 raise ValueError(f"Pattern at index {i} must contain a 'fields' key")

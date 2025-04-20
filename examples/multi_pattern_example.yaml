@@ -1,0 +1,63 @@
+name: multi_pattern_example
+version: 1.0
+description: Example structure definition showing all three pattern types
+patterns:
+  - name: regex_pattern
+    type: regex
+    pattern: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (?P<level>\w+) (?P<message>.*)$'
+    fields:
+      - name: timestamp
+        type: string
+        description: Log timestamp
+      - name: level
+        type: string
+        description: Log level
+      - name: message
+        type: string
+        description: Log message
+  
+  - name: grok_pattern
+    type: grok
+    pattern: '%{IP:client_ip} %{WORD:ident} %{WORD:auth} [%{TIMESTAMP:timestamp}] "%{WORD:method} %{WORD:path} %{WORD:protocol}" %{NUMBER:status} %{NUMBER:bytes}'
+    fields:
+      - name: client_ip
+        type: string
+        description: Client IP address
+      - name: ident
+        type: string
+        description: Identity header
+      - name: auth
+        type: string
+        description: Auth user
+      - name: timestamp
+        type: string
+        description: Request timestamp
+      - name: method
+        type: string
+        description: HTTP method
+      - name: path
+        type: string
+        description: Request path
+      - name: protocol
+        type: string
+        description: HTTP protocol
+      - name: status
+        type: int
+        description: HTTP status code
+      - name: bytes
+        type: int
+        description: Response size in bytes
+  
+  - name: template_pattern
+    type: template
+    pattern: '{timestamp} {level} - {message}'
+    fields:
+      - name: timestamp
+        type: string
+        description: Log timestamp
+      - name: level
+        type: string
+        description: Log level
+      - name: message
+        type: string
+        description: Log message content 
