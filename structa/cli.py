@@ -10,7 +10,7 @@ import yaml
 from structa.structure import StructureDefinition
 from structa.parser import LogParser
 from structa.output import OutputFormatter
-from structa.utils import Banner 
+from structa.utils.banner import get_banner
 
 @click.group()
 def cli():
@@ -321,7 +321,7 @@ def build_pattern(output, format):
 def main():
     """Main entry point for the CLI."""
     if len(sys.argv) == 1:
-        click.echo(Banner)
+        click.echo(get_banner())
         click.echo("Run 'structa --help' for usage information.")
     cli()
 
