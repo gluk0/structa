@@ -2,6 +2,7 @@
 
 import sys
 import click
+import json
 from pathlib import Path
 from typing import Optional, TextIO, Dict, Any
 import regex
@@ -11,6 +12,7 @@ from structa.structure import StructureDefinition
 from structa.parser import LogParser
 from structa.output import OutputFormatter
 from structa.utils.banner import get_banner
+from structa.destinations import create_destination
 
 @click.group()
 def cli():
@@ -51,6 +53,17 @@ def cli():
     help="Output format (default: json)."
 )
 @click.option(
+    "--destination-type",
+    type=click.Choice(["filesystem", "gcs", "bigquery"]),
+    default="filesystem",
+    help="Type of destination to write data to (default: filesystem)."
+)
+@click.option(
+    "--destination-config",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    help="Path to a JSON config file for the destination."
+)
+@click.option(
     "--pretty/--no-pretty",
     default=True,
     help="Use pretty formatting for JSON output (default: pretty)."
@@ -61,7 +74,7 @@ def cli():
     default="auto",
     help="Pattern format to use (default: auto-detect)."
 )
-def parse(structure, input, output, format, pretty, pattern_format):
+def parse(structure, input, output, format, destination_type, destination_config, pretty, pattern_format):
     """Parse a log file according to a structure definition."""
     try:
         structure_def = StructureDefinition.from_file(structure)
@@ -74,20 +87,84 @@ def parse(structure, input, output, format, pretty, pattern_format):
         
         parsed_data = parser.parse_file(input)
         
-        if format == "json":
-            result = OutputFormatter.to_json(parsed_data, pretty=pretty)
-        elif format == "csv":
-            result = OutputFormatter.to_csv(parsed_data)
-        elif format == "table":
-            result = OutputFormatter.to_table(parsed_data)
+        # Handle the different destination types
+        if destination_type != "filesystem" or (output and not output.startswith("-")):
+            # Load destination config if provided
+            destination_kwargs = {}
+            if destination_config:
+                with open(destination_config, 'r') as f:
+                    destination_kwargs = json.load(f)
+            
+            # Add relevant CLI options to the destination kwargs
+            if destination_type == "filesystem" and output:
+                # Use the output path as the file_system_path if it's a directory
+                output_path = Path(output)
+                if output_path.is_dir():
+                    destination_kwargs["file_system_path"] = str(output_path)
+                    
+                    # Use the input filename as the output filename
+                    input_filename = Path(input).name
+                    output = str(output_path / input_filename)
+                    
+                    # Adjust extension based on format if needed
+                    if not output.endswith(f".{format}"):
+                        output = f"{output}.{format}"
+            
+            # Create the destination
+            dest = create_destination(destination_type, **destination_kwargs)
+            
+            # Format the data
+            if format == "json":
+                result_data = parsed_data
+                dest.write(
+                    result_data, 
+                    path=output or Path(input).with_suffix(f".{format}").name,
+                    format="json",
+                    pretty=pretty
+                )
+            elif format == "csv":
+                result_data = parsed_data
+                dest.write(
+                    result_data,
+                    path=output or Path(input).with_suffix(f".{format}").name,
+                    format="csv"
+                )
+            elif format == "table":
+                # Table format is only for display, write as JSON
+                result_data = parsed_data
+                dest.write(
+                    result_data,
+                    path=output or Path(input).with_suffix(".json").name,
+                    format="json",
+                    pretty=pretty
+                )
+                # Also display the table to stdout
+                result = OutputFormatter.to_table(parsed_data)
+                click.echo(result)
+            else:
+                result_data = parsed_data
+                dest.write(
+                    result_data,
+                    path=output or Path(input).with_suffix(".json").name,
+                    format="json",
+                    pretty=pretty
+                )
         else:
-            result = OutputFormatter.to_json(parsed_data, pretty=pretty)
-        
-        if output:
-            with open(output, 'w') as f:
-                f.write(result)
-        else:
-            click.echo(result)
+            # Legacy behavior - output to stdout or file directly
+            if format == "json":
+                result = OutputFormatter.to_json(parsed_data, pretty=pretty)
+            elif format == "csv":
+                result = OutputFormatter.to_csv(parsed_data)
+            elif format == "table":
+                result = OutputFormatter.to_table(parsed_data)
+            else:
+                result = OutputFormatter.to_json(parsed_data, pretty=pretty)
+            
+            if output:
+                with open(output, 'w') as f:
+                    f.write(result)
+            else:
+                click.echo(result)
             
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
