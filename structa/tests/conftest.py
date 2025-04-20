@@ -23,7 +23,8 @@ def common_yaml_structure():
     version: "1.0"
     patterns:
       - name: standard_log
-        regex: '(?P<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (?P<level>\\w+) (?P<message>.*)'
+        type: regex
+        pattern: '(?P<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (?P<level>\\w+) (?P<message>.*)'
         fields:
           - name: timestamp
             type: string
