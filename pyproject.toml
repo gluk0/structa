@@ -23,7 +23,9 @@ classifiers = [
 ]
 dependencies = [
     "click>=8.1.8",
+    "kubernetes>=32.0.1",
     "pyaml>=25.1.0",
+    "pytest>=8.3.5",
     "regex>=2024.11.6",
     "typing-extensions>=4.0.0",
 ]
