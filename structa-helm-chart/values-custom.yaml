@@ -1,0 +1,110 @@
+# Custom values for structa-sidecar Helm chart
+# This is an example of a custom values file for deploying a specific microservice with Structa
+# Microservice configuration
+microservice:
+  name: structa-microservice-demo
+  image:
+    repository: myorg/my-app
+    tag: 1.0.0
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 200
+      memory: 128Mi
+  port: 8080
+  livenessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 60
+    periodSeconds: 15
+  readinessProbe:
+    enabled: true
+    path: /ready
+    initialDelaySeconds: 30
+    periodSeconds: 10
+
+# Structa sidecar configuration
+structa:
+  enabled: true
+  image:
+    repository: myorg/structa
+    tag: 0.1.0
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 50m
+      memory: 100Mi
+    requests:
+      cpu: 75m
+      memory: 100Mi
+  logPath: /var/log/my-app
+  logPatternType: grok
+  
+  # Configure Structa log parser
+  config:
+    name: "structa-log-parser"
+    version: "1.0.0"
+    patterns:
+      - name: "app-log"
+        type: "grok"
+        pattern: "%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{NOTSPACE:service} - %{GREEDYDATA:message}"
+        fields:
+          timestamp:
+            type: "datetime"
+          level:
+            type: "string"
+          service:
+            type: "string"
+          message:
+            type: "string"
+      - name: "error-log"
+        type: "grok"
+        pattern: "%{TIMESTAMP_ISO8601:timestamp} ERROR %{NOTSPACE:service} - %{GREEDYDATA:error_message} | trace=%{NOTSPACE:trace_id}"
+        fields:
+          timestamp:
+            type: "datetime"
+          service:
+            type: "string"
+          error_message:
+            type: "string"
+          trace_id:
+            type: "string"
+
+  # Destination configuration for temp files + filesystem logs for PVC use. 
+  destination:
+    type: filesystem
+    config:
+      file_system_path: "/var/log/parsed"
+      format: "json"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+
+# Pod annotations for monitoring
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/metrics"
+
+# Volume configuration for log sharing
+volumes:
+  logs:
+    enabled: true
+    type: emptyDir
+    size: 200Mi
+
+# Node selector
+nodeSelector:
+  tier: application
+
+# Tolerations
+tolerations:
+  - key: "app"
+    operator: "Equal"
+    value: "critical"
+    effect: "NoSchedule" 

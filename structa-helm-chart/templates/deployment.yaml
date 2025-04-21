@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        release: {{ .Release.Name }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      volumes:
+        - name: shared-logs
+          {{- if .Values.volumes.logs.enabled }}
+          emptyDir:
+            {{- if .Values.volumes.logs.size }}
+            sizeLimit: {{ .Values.volumes.logs.size }}
+            {{- end }}
+          {{- end }}
+        - name: structa-config
+          configMap:
+            name: {{ .Release.Name }}-structa-config
+        {{- if eq .Values.structa.destination.type "gcs" }}
+        - name: gcs-credentials
+          secret:
+            secretName: {{ .Release.Name }}-gcs-credentials
+        {{- end }}
+      containers:
+        # Main application container
+        - name: {{ .Values.microservice.name }}
+          image: "{{ .Values.microservice.image.repository }}:{{ .Values.microservice.image.tag }}"
+          imagePullPolicy: {{ .Values.microservice.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.microservice.port }}
+              protocol: TCP
+          {{- if .Values.microservice.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.microservice.livenessProbe.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.microservice.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.microservice.livenessProbe.periodSeconds }}
+          {{- end }}
+          {{- if .Values.microservice.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.microservice.readinessProbe.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.microservice.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.microservice.readinessProbe.periodSeconds }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.microservice.resources | nindent 12 }}
+          volumeMounts:
+            - name: shared-logs
+              mountPath: {{ .Values.structa.logPath }}
+        
+        # Structa sidecar container
+        {{- if .Values.structa.enabled }}
+        - name: structa-sidecar
+          image: "{{ .Values.structa.image.repository }}:{{ .Values.structa.image.tag }}"
+          imagePullPolicy: {{ .Values.structa.image.pullPolicy }}
+          args:
+          # This needs refacotring, should the chart define this or bake it into the image? 
+          # for the purpose of a demo, it will be defined here as its easy to understand. 
+            - "parse"
+            - "--structure"
+            - "/etc/structa/config/structure.yaml"
+            - "--input"
+            - "{{ .Values.structa.logPath }}/*.log"
+            - "--destination-type"
+            - "{{ .Values.structa.destination.type }}"
+            - "--format"
+            - "{{ .Values.structa.destination.config.format }}"
+          resources:
+            {{- toYaml .Values.structa.resources | nindent 12 }}
+          volumeMounts:
+            - name: shared-logs
+              mountPath: {{ .Values.structa.logPath }}
+              readOnly: true
+            - name: structa-config
+              mountPath: /etc/structa/config
+            {{- if eq .Values.structa.destination.type "filesystem" }}
+            - name: shared-logs
+              mountPath: {{ .Values.structa.destination.config.file_system_path }}
+            {{- end }}
+            {{- if eq .Values.structa.destination.type "gcs" }}
+            - name: gcs-credentials
+              mountPath: /etc/structa/credentials
+              readOnly: true
+            {{- end }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }} 

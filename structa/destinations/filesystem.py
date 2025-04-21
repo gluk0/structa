@@ -3,7 +3,6 @@ from typing import Any, Dict, Optional, Union
 from pathlib import Path
 import json
 import csv
-
 from structa.destinations.abstract_destination import AbstractDestination
 
 

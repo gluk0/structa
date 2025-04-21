@@ -107,11 +107,7 @@ class BigQueryDestination(AbstractDestination):
         try:
             # Using lazy import to avoid requiring google-cloud-bigquery
             from google.cloud import bigquery
-
-            # Reference the table
             table_ref = self.dataset_ref.table(path)
-            
-            # Check if table exists
             table_exists = True
             try:
                 self.client.get_table(table_ref)
@@ -119,9 +115,7 @@ class BigQueryDestination(AbstractDestination):
                 table_exists = False
                 
             if not table_exists and create_if_missing:
-                # Create table if it doesn't exist
                 if schema is None:
-                    # Infer schema from data
                     schema = self._infer_schema_from_data(data)
                     
                 table = bigquery.Table(table_ref, schema=schema)
@@ -134,7 +128,6 @@ class BigQueryDestination(AbstractDestination):
                     
                 self.client.create_table(table)
             
-            # Load data into the table
             job_config = bigquery.LoadJobConfig()
             
             if schema:
@@ -143,7 +136,6 @@ class BigQueryDestination(AbstractDestination):
             if write_disposition:
                 job_config.write_disposition = write_disposition
                 
-            # Use a temporary JSON file as the source
             with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as temp_file:
                 for record in data:
                     temp_file.write(json.dumps(record) + "\n")
@@ -166,13 +158,11 @@ class BigQueryDestination(AbstractDestination):
             
     def _infer_schema_from_data(self, data: List[Dict]):
         """Infer BigQuery schema from data."""
-        # Using lazy import to avoid requiring google-cloud-bigquery
         from google.cloud import bigquery
         
         if not data:
             return []
-            
-        # Start with the first record as a template
+    
         record = data[0]
         schema = []
         

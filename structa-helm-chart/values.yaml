@@ -1,0 +1,93 @@
+# Default values for structa-sidecar Helm chart
+
+# Microservice configuration
+microservice:
+  name: example-microservice
+  image:
+    repository: nginx
+    tag: stable
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  port: 80
+  livenessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 30
+    periodSeconds: 10
+
+# Structa sidecar configuration
+structa:
+  enabled: true
+  image:
+    repository: structa
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  logPath: /var/log/microservice
+  logPatternType: template  # Options: regex, grok, template
+  
+  # Configure Structa log parser
+  config:
+    name: "microservice-log-parser"
+    version: "1.0.0"
+    patterns:
+      - name: "standard-log"
+        type: "template"
+        pattern: "[{timestamp}] {level}: {message}"
+        fields:
+          timestamp:
+            type: "datetime"
+            format: "%Y-%m-%d %H:%M:%S"
+          level:
+            type: "string"
+            enum: ["INFO", "WARNING", "ERROR", "DEBUG"]
+          message:
+            type: "string"
+
+  # Destination configuration
+  destination:
+    type: filesystem  # Options: filesystem, gcs, bigquery
+    config:
+      file_system_path: "/var/log/parsed"
+      format: "json"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+# Pod configuration
+podAnnotations: {}
+
+# Volume configuration for log sharing
+volumes:
+  logs:
+    enabled: true
+    type: emptyDir
+    size: 100Mi
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {} 

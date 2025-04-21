@@ -3,7 +3,7 @@
 
 set -e
 
-VERSION_FILE="pyproject.toml"  # Change if version is stored elsewhere (setup.py, etc.)
+VERSION_FILE="pyproject.toml" 
 COMMIT_USER="GitHub Actions"
 COMMIT_EMAIL="github-actions@github.com"
 
@@ -59,7 +59,6 @@ git config user.email "$COMMIT_EMAIL"
 
 BUMP_TYPE="patch"
 
-# Check if commit message contains keywords for specific bump types
 if git log -1 --pretty=%B | grep -i -q '\[major\]'; then
     BUMP_TYPE="major"
 elif git log -1 --pretty=%B | grep -i -q '\[minor\]'; then

@@ -58,6 +58,10 @@ def main():
     
     Usage:
         python -m structa.k8.pod_streamer --namespace default --pod my-pod
+        This needs refactoring to be run via the main entry point to the app. 
+        From this, the podStreamer will indefinitely run, setting the entrypoint of the 
+        side car image to load this, it will continue to stream logs, we need to 
+        think about how this will work in practise. How will it handle exceptions? 
     """
     parser = argparse.ArgumentParser(description="Stream logs from a Kubernetes pod")
     parser.add_argument("--namespace", "-n", required=True, help="Kubernetes namespace")
@@ -65,16 +69,13 @@ def main():
     
     args = parser.parse_args()
     
-    # Load kube config
     try:
         config.load_kube_config()
     except Exception:
-        # If running in-cluster
         config.load_incluster_config()
         
     logger = get_logger(__name__)
     logger.info(f"Starting pod streamer for pod {args.pod} in namespace {args.namespace}")
-    
     streamer = PodStreamer(args.namespace, args.pod)
     streamer.stream_pod_logs()
 

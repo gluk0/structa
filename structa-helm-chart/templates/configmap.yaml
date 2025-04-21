@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-structa-config
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  structure.yaml: |
+    name: {{ .Values.structa.config.name }}
+    version: {{ .Values.structa.config.version }}
+    patterns:
+      {{- range .Values.structa.config.patterns }}
+      - name: {{ .name }}
+        type: {{ .type }}
+        pattern: {{ .pattern | quote }}
+        fields:
+          {{- range $fieldName, $fieldValue := .fields }}
+          {{ $fieldName }}:
+            {{- range $propertyName, $propertyValue := $fieldValue }}
+            {{ $propertyName }}: {{ $propertyValue | quote }}
+            {{- end }}
+          {{- end }}
+      {{- end }} 
