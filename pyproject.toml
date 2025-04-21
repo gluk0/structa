@@ -9,8 +9,9 @@ description = "A library for chopping logs."
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
+license-files = ["LICEN[CS]E*"]
 authors = [
-    {name = "Author", email = "author@example.com"}
+    {name = "Author", email = "rich@gluk0.dev"}
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -27,6 +28,7 @@ dependencies = [
     "pyaml>=25.1.0",
     "pytest>=8.3.5",
     "regex>=2024.11.6",
+    "twine>=6.1.0",
     "typing-extensions>=4.0.0",
 ]
 
@@ -37,6 +39,10 @@ dev = [
     "pytest>=7.4.3",
     "pytest-cov>=4.1.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/gluk0/structa"
+Issues = "https://github.com/gluk0/structa/issues"
 
 [project.scripts]
 structa = "structa.cli:main"
