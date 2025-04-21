@@ -1,0 +1,28 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To check if the application is running, execute:
+  kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ .Release.Name }},release={{ .Release.Name }}"
+
+To get the application URL:
+{{- if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ .Release.Name }}-service)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ .Release.Name }}-service'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ .Release.Name }}-service --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.service.port }}
+{{- else if contains "ClusterIP" .Values.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ .Release.Name }},release={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Access the application from within the cluster at {{ .Release.Name }}-service:{{ .Values.service.port }}"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:{{ .Values.microservice.port }}
+  echo "Visit http://localhost:8080 to access the application"
+{{- end }}
+
+To view the Structa sidecar logs:
+  kubectl logs --namespace {{ .Release.Namespace }} -l "app={{ .Release.Name }},release={{ .Release.Name }}" -c structa-sidecar
+
+For more information about the deployment, refer to the README.md file in the chart directory. 

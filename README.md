@@ -3,12 +3,12 @@ A lightweight Python library that transforms
 unstructed log data into structured data,
 this can be ran locally, as a kubernetes sidecar 
 or run as a service to parse logs for Data Engineering
-processes! 
+processes.
 
 ## Install
 
 ```shell
-uv pip install .  # or via pip.
+uv pip install .  # or via pip/pipx/poetry.
 ```
 
 ## Quick Start

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: structa-sidecar
+description: A Helm chart for deploying a microservice with the Structa log parser sidecar
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: Structa 
+    email: rich@gluk0.dev
+  i
